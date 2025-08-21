@@ -1,32 +1,23 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
-import "./globals.css"
+import type { Metadata } from "next";
+import "./globals.css";
+import RootProviders from "./RootProviders";
+import Navbar from "@/components/navigation";
 
 export const metadata: Metadata = {
-  title: "RiskLens AI - Personal Risk Advisor",
-  description: "Your Personal Financial, Health, and Lifestyle Risk Advisor powered by AI",
-  generator: "v0.dev",
-}
+  title: "RISK LENS",
+  description: "Risk scenario analysis and insights",
+};
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <style>{`
-html {
-  font-family: ${GeistSans.style.fontFamily};
-  --font-sans: ${GeistSans.variable};
-  --font-mono: ${GeistMono.variable};
-}
-        `}</style>
-      </head>
-      <body>{children}</body>
+      <body className="min-h-dvh bg-background text-foreground antialiased">
+        {/* Everything inside RootProviders is client-only */}
+        <RootProviders>
+          <Navbar />
+          <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+        </RootProviders>
+      </body>
     </html>
-  )
+  );
 }

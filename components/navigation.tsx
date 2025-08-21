@@ -1,100 +1,151 @@
-"use client"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Menu, X } from 'lucide-react'
+"use client";
 
-interface NavigationProps {
-  activeTab: "risk-mirror" | "ai-assistant" | "about"
-  onTabChange: (tab: "risk-mirror" | "ai-assistant" | "about") => void
-}
+import Link from "next/link";
+import ThemeToggle from "./ThemeToggle";
+import { useState, useRef, useEffect } from "react";
+import { User as UserIcon, LogOut, FileText, Settings, HelpCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 
-export function Navigation({ activeTab, onTabChange }: NavigationProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+export default function Navigation() {
+  const router = useRouter();
+  const { user, logout } = useAuth(); // ← use context
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleTabChange = (tab: "risk-mirror" | "ai-assistant" | "about") => {
-    onTabChange(tab)
-    setIsMobileMenuOpen(false)
-  }
+  // Close dropdown if clicked outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <nav className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <h1 className="text-xl sm:text-2xl font-bold text-white transition-all duration-300 hover:scale-105">
-              RiskLens AI
-            </h1>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8">
-            <Button
-              variant={activeTab === "risk-mirror" ? "secondary" : "ghost"}
-              onClick={() => handleTabChange("risk-mirror")}
-              className="text-white hover:text-blue-200 transition-all duration-300 hover:scale-105"
-            >
-              Risk Mirror
-            </Button>
-            <Button
-              variant={activeTab === "ai-assistant" ? "secondary" : "ghost"}
-              onClick={() => handleTabChange("ai-assistant")}
-              className="text-white hover:text-blue-200 transition-all duration-300 hover:scale-105"
-            >
-              AI Assistant
-            </Button>
-            <Button
-              variant={activeTab === "about" ? "secondary" : "ghost"}
-              onClick={() => handleTabChange("about")}
-              className="text-white hover:text-blue-200 transition-all duration-300 hover:scale-105"
-            >
-              About
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-white hover:text-blue-200 transition-all duration-300"
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Menu */}
-        <div
-          className={`md:hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? "max-h-48 opacity-100" : "max-h-0 opacity-0"
-          } overflow-hidden`}
+    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        {/* Brand */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-white/5 backdrop-blur-sm rounded-lg mb-2">
-            <Button
-              variant={activeTab === "risk-mirror" ? "secondary" : "ghost"}
-              onClick={() => handleTabChange("risk-mirror")}
-              className="w-full text-left justify-start text-white hover:text-blue-200 transition-all duration-300"
-            >
-              Risk Mirror
-            </Button>
-            <Button
-              variant={activeTab === "ai-assistant" ? "secondary" : "ghost"}
-              onClick={() => handleTabChange("ai-assistant")}
-              className="w-full text-left justify-start text-white hover:text-blue-200 transition-all duration-300"
-            >
-              AI Assistant
-            </Button>
-            <Button
-              variant={activeTab === "about" ? "secondary" : "ghost"}
-              onClick={() => handleTabChange("about")}
-              className="w-full text-left justify-start text-white hover:text-blue-200 transition-all duration-300"
-            >
-              About
-            </Button>
-          </div>
+          <Link href="/" className="font-semibold tracking-tight text-xl">
+            RISK LENS
+          </Link>
+        </motion.div>
+
+        {/* Menu */}
+        <div className="flex items-center gap-3 relative">
+          {!user ? (
+            <>
+              {["AI Assistant", "About", "Login / Sign Up"].map((item, i) => {
+                const hrefs = ["/ai-assistant", "/about", "/auth"];
+                return (
+                  <motion.div
+                    key={i}
+                    whileHover={{ scale: 1.08, rotateX: 5, rotateY: -5 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                  >
+                    <Link href={hrefs[i]} className="rounded-lg px-3 py-2 text-sm hover:bg-muted block">
+                      {item}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </>
+          ) : (
+            <>
+              {[
+                { label: "AI Assistant", href: "/ai-assistant" },
+                { label: "About", href: "/about" },
+              ].map((link, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ scale: 1.08, rotateX: 5, rotateY: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                >
+                  <Link href={link.href} className="rounded-lg px-3 py-2 text-sm hover:bg-muted block">
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ))}
+
+              {/* Profile Dropdown */}
+              <div className="relative">
+                <motion.div
+                  className="rounded-full p-2 hover:bg-muted cursor-pointer flex items-center justify-center"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  whileHover={{ scale: 1.1, rotate: 10 }}
+                  whileTap={{ scale: 0.9, rotate: -10 }}
+                >
+                  <UserIcon className="w-6 h-6 text-blue-500" />
+                </motion.div>
+
+                <AnimatePresence>
+                  {dropdownOpen && (
+                    <motion.div
+                      ref={dropdownRef}
+                      initial={{ opacity: 0, y: -10, scale: 0.95, rotateX: -15 }}
+                      animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95, rotateX: -15 }}
+                      transition={{ duration: 0.3 }}
+                      className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                    >
+                      <div className="flex flex-col">
+                        <motion.button
+                          onClick={() => router.push("/profile/user")}
+                          className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                          whileHover={{ scale: 1.05, x: 5 }}
+                        >
+                          <Settings className="w-4 h-4" /> Profile
+                        </motion.button>
+
+                        <motion.button
+      onClick={() => router.push("/profile/previous-risk-scores")}
+      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+      whileHover={{ scale: 1.05, x: 5 }}
+    >
+      <FileText className="w-4 h-4" /> Previous Scores
+    </motion.button>
+
+                        <motion.button
+                          onClick={() => router.push("/profile/help")}
+                          className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
+                          whileHover={{ scale: 1.05, x: 5 }}
+                        >
+                          <HelpCircle className="w-4 h-4" /> Help
+                        </motion.button>
+
+                        <hr className="border-gray-200 dark:border-gray-700" />
+
+                        <motion.button
+                          onClick={logout}
+                          className="flex items-center gap-2 px-4 py-2 hover:bg-red-100 dark:hover:bg-red-700 text-left text-red-600"
+                          whileHover={{ scale: 1.05, x: 5 }}
+                        >
+                          <LogOut className="w-4 h-4" /> Logout
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          )}
+
+          {/* Theme Toggle */}
+          <motion.div whileHover={{ rotate: 15 }} whileTap={{ scale: 0.9 }}>
+            <ThemeToggle />
+          </motion.div>
         </div>
-      </div>
-    </nav>
-  )
+      </nav>
+    </header>
+  );
 }

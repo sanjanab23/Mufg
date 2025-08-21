@@ -2,6 +2,25 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+/* Animated gradient shimmer */
+@keyframes gradient-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-move 6s ease infinite;
+}
 
 :root {
   --background: oklch(1 0 0);
