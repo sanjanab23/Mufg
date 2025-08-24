@@ -1,12 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import RiskChart from "@/components/ui/chart"
 import { Shield, Zap, LineChart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useState, useEffect } from "react"
 
+// Tilt effect wrapper
 function TiltWrapper({ children }: { children: React.ReactNode }) {
   const [rotate, setRotate] = useState({ x: 0, y: 0 })
 
@@ -38,8 +38,89 @@ function TiltWrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
+// Futuristic Gauge Component
+function FuturisticGauge() {
+  const [direction, setDirection] = useState(1)
+  const [angle, setAngle] = useState(60)
+  const labels = ["Financial", "Health", "Time Horizon", "Analysis"]
+  const [activeLabel, setActiveLabel] = useState(0)
+
+  // Sweep needle back and forth
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDirection((prev) => -prev)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Sequential floating panels
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveLabel((prev) => (prev + 1) % labels.length)
+    }, 2000) // 2 seconds per label
+    return () => clearInterval(interval)
+  }, [])
+
+  const riskColor =
+    angle < -20 ? "text-green-400" : angle < 20 ? "text-yellow-400" : "text-red-400"
+  const riskLabel =
+    angle < -20 ? "Low" : angle < 20 ? "Medium" : "High"
+
+  return (
+    <div className="relative flex flex-col items-center">
+      {/* Gauge */}
+      <div className="w-48 h-24 rounded-b-full border-4 border-primary relative overflow-hidden bg-black/30 backdrop-blur-lg shadow-lg">
+        {/* Needle */}
+        <motion.div
+          className="absolute bottom-0 left-1/2 w-1 h-20 origin-bottom shadow-[0_0_15px_rgba(0,255,255,0.8)]"
+          style={{ backgroundColor: "#00f0ff" }}
+          animate={{ rotate: direction === 1 ? 60 : -60 }}
+          transition={{ duration: 4, ease: "easeInOut" }}
+          onUpdate={(latest) => {
+            if (typeof latest.rotate === "number") setAngle(latest.rotate)
+          }}
+        />
+
+        {/* Floating Panels */}
+        <div className="relative w-32 h-12">
+      <AnimatePresence>
+        {labels.map((label, i) =>
+          i === activeLabel ? (
+            <motion.div
+              key={label}
+              className="absolute top-0 left-1/2 w-20 h-8 flex items-center justify-center
+                         text-xs font-semibold text-white bg-white/10 backdrop-blur-md
+                         rounded-lg border border-white/20 shadow-lg"
+              initial={{ y: -40, opacity: 0, scale: 0.6 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 40, opacity: 0, scale: 0.6 }}
+              transition={{
+                y: { type: "spring", stiffness: 120, damping: 12 },
+                opacity: { duration: 0.4 },
+                scale: { duration: 0.5 },
+              }}
+            >
+              {label}
+            </motion.div>
+          ) : null
+        )}
+      </AnimatePresence>
+    </div>
+
+
+
+      </div>
+
+      {/* Dynamic Risk */}
+      <p className={`mt-2 text-sm font-semibold ${riskColor}`}>
+        Risk Level: {riskLabel}
+      </p>
+    </div>
+  )
+}
+
+// Main Page
 export default function Page() {
-  // Cursor glow state
   useEffect(() => {
     const glow = document.querySelector(".cursor-glow") as HTMLElement
     const move = (e: MouseEvent) => {
@@ -54,9 +135,6 @@ export default function Page() {
 
   return (
     <div className="relative space-y-20 perspective-[1000px]">
-
-     
-
       {/* Hero */}
       <section className="relative grid items-center gap-10 md:grid-cols-2">
         <motion.div
@@ -92,6 +170,7 @@ export default function Page() {
           </div>
         </motion.div>
 
+        {/* Futuristic Gauge in Hero */}
         <TiltWrapper>
           <motion.div
             initial={{ opacity: 0, rotateY: 15 }}
@@ -100,7 +179,7 @@ export default function Page() {
             viewport={{ once: true }}
             className="rounded-2xl border p-6 shadow-xl transition-transform"
           >
-            <RiskChart />
+            <FuturisticGauge />
           </motion.div>
         </TiltWrapper>
       </section>
@@ -134,35 +213,69 @@ export default function Page() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="space-y-10">
-        <h2 className="text-3xl font-bold text-center">How It Works</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {[
-            { step: 1, title: "Input Data", desc: "Provide key information or connect your data source securely." },
-            { step: 2, title: "AI Risk Scan", desc: "Our engine processes the signals and detects potential threats instantly." },
-            { step: 3, title: "Get Insights", desc: "Receive your personalized risk score and recommendations right away." }
-          ].map((item, i) => (
-            <TiltWrapper key={i}>
+      
+      <section id="how-it-works" className="relative my-20 flex flex-col items-center">
+  <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+
+  {/* Timeline container */}
+  <div className="relative w-full max-w-3xl flex flex-col items-center">
+    {/* Timeline line (stops before last node) */}
+    <motion.div
+      className="absolute left-1/2 w-1 bg-blue-400/50 rounded-full"
+      initial={{ height: 0 }}
+      animate={{ height: "calc(100% - 40px)" }} // subtract last node height so line stops
+      transition={{ duration: 1.5, ease: "easeInOut" }}
+      style={{ top: 0 }}
+    />
+
+    {/* Timeline nodes */}
+    {[
+      { title: "Input Data", desc: "Provide key information or connect your data source securely." },
+      { title: "AI Risk Scan", desc: "Our engine processes the signals and detects potential threats instantly." },
+      { title: "Get Insights", desc: "Receive your personalized risk score and recommendations right away." },
+      { title: "Actionable Decisions", desc: "Take fast, informed actions to mitigate potential risks." }
+    ].map((step, i) => {
+      const [activeNodes, setActiveNodes] = useState<number[]>([])
+
+      // Handle hover or click to activate node
+      const handleActivate = () => {
+        setActiveNodes((prev) => {
+          if (!prev.includes(i)) return [...prev, i]
+          return prev
+        })
+      }
+
+      return (
+        <div key={i} className="relative flex flex-col items-center mb-20">
+          {/* Node circle */}
+          <div
+            className="w-6 h-6 rounded-full bg-blue-500 shadow-[0_0_15px_rgba(0,255,255,0.6)] cursor-pointer"
+            onMouseEnter={handleActivate}
+            onClick={handleActivate}
+          />
+
+          {/* Card */}
+          <AnimatePresence>
+            {activeNodes.includes(i) && (
               <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: i * 0.2 }}
-                viewport={{ once: true }}
+                className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-lg p-4 text-center mt-4 w-64"
+                initial={{ opacity: 0, y: -20, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.8 }}
+                transition={{ duration: 0.5 }}
               >
-                <Card className="rounded-2xl shadow-md hover:shadow-xl transition-transform">
-                  <CardContent className="p-6 space-y-3 text-center">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                      <span className="font-bold text-primary">{item.step}</span>
-                    </div>
-                    <h3 className="font-semibold">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </CardContent>
-                </Card>
+                <h3 className="text-sm font-semibold mb-1">{step.title}</h3>
+                <p className="text-[10px] text-muted-foreground">{step.desc}</p>
               </motion.div>
-            </TiltWrapper>
-          ))}
+            )}
+          </AnimatePresence>
         </div>
-      </section>
+      )
+    })}
+  </div>
+</section>
+
+
 
       {/* Final CTA */}
       <motion.section
